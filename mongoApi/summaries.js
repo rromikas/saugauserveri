@@ -48,6 +48,7 @@ module.exports.AddSummary = ({ bookId, summary }) => {
         date: Date.now(),
         author: summary.authorId,
         bookId: bookId,
+        title: summary.title,
       });
       newSummary.save();
       const updatedBook = await Books.findOneAndUpdate(

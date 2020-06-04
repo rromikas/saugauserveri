@@ -6,6 +6,7 @@ const SummariesSchema = new Schema({
   date: { type: Number },
   author: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
   private: { type: Boolean, default: false },
+  title: { type: String },
   summary: { type: String },
   views: { type: Number, default: 0 },
   ratings: [
