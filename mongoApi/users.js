@@ -6,11 +6,11 @@ require("dotenv").config();
 const secret = process.env.SECRET;
 
 module.exports.ReadUser = (user) => {
-  console.log("read user");
   return new Promise((resolve, reject) => {
     try {
       User.findOne({ email: user.email })
         .populate("favoriteBooks")
+        .populate({ path: "summaries", populate: { path: "bookId" } })
         .exec((err, user) => {
           if (user) {
             resolve({ user: user });
@@ -27,7 +27,6 @@ module.exports.ReadUser = (user) => {
 module.exports.UpdateUser = (user) => {
   return new Promise((resolve, reject) => {
     User.findOneAndUpdate({ email: user.email }, user, (err, doc) => {
-      console.log("UPDET USER ERR DOC", err, doc);
       if (err) {
         resolve({ error: err });
       } else {

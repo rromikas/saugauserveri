@@ -80,7 +80,6 @@ module.exports.GetBook = (bookFilter) => {
   return new Promise(async (resolve, reject) => {
     try {
       const filteredBooks = await Books.find(bookFilter)
-        .populate({ path: "threads", populate: { path: "createdBy" } })
         .populate("favoriteFor")
         .exec();
       if (filteredBooks) {
@@ -151,14 +150,12 @@ module.exports.AddBookToFavorites = ({ bookId, userId }) => {
         );
       }
 
-      console.log("updaetd user", updatedUser);
       if (updatedBook && updatedUser) {
         resolve({ updatedUser, updatedBook });
       } else {
         resolve({ error: "Couldn't  add to favorite" });
       }
     } catch (er) {
-      console.log("ad book to favortie error catch", er);
       resolve({ error: "Syntax error" });
     }
   });
@@ -190,7 +187,6 @@ module.exports.RemoveBookFromFavorites = ({ bookId, userId }) => {
         resolve({ error: "Couldn't  remove from favorite" });
       }
     } catch (er) {
-      console.log("remove book to favortie error catch", er);
       resolve({ error: "Syntax error" });
     }
   });

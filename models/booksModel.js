@@ -42,9 +42,7 @@ const BooksSchema = new Schema({
 
   favoriteFor: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
 
-  summaries: [
-    { summary: { type: mongoose.Schema.Types.ObjectId, ref: "Summary" } },
-  ],
+  summaries: [{ type: mongoose.Schema.Types.ObjectId, ref: "Summary" }],
 
   threads: [{ type: mongoose.Schema.Types.ObjectId, ref: "Thread" }],
 });

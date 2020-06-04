@@ -19,11 +19,9 @@ module.exports.GetThread = ({ bookId, threadId }) => {
 
         .exec();
       if (thread) {
-        console.log("THREAD POPULATD", thread.replies[0]);
         resolve({ success: true, thread: thread });
       } else resolve({ error: true });
     } catch (er) {
-      console.log("ThREAD GET ERORR", er);
       resolve({ error: true });
     }
   });

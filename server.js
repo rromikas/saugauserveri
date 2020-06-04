@@ -23,7 +23,14 @@ const {
   RemoveBookFromFavorites,
   GetRecentlyAddedBooks,
 } = require("./mongoApi/books");
-const { AddSummary, GetTopRatedSummaries } = require("./mongoApi/summaries");
+const {
+  AddSummary,
+  GetTopRatedSummaries,
+  GetSummary,
+  RateSummary,
+  GetMostRecentSummaries,
+  EditSummary,
+} = require("./mongoApi/summaries");
 const {
   CreateThread,
   GetUnansweredThreads,
@@ -32,7 +39,11 @@ const {
   AddView,
   GetThread,
 } = require("./mongoApi/threads");
-const { ReplyToQuestion, VoteForReply } = require("./mongoApi/replies");
+const {
+  ReplyToQuestion,
+  VoteForReply,
+  CommentSummary,
+} = require("./mongoApi/replies");
 const mongoose = require("mongoose");
 
 mongoose
@@ -75,7 +86,7 @@ io.on("connection", (socket) => {
   });
 
   socket.on("/users/update", (data) => {
-    verifyToken(data.token, async (user) => {
+    verifyToken(data.token, async (error, user) => {
       data.email = user.email;
       let response = await UpdateUser(data);
       socket.emit("/users/update", response);
@@ -106,7 +117,6 @@ io.on("connection", (socket) => {
   });
 
   socket.on("/books/getRecentlyAddedBooks", async () => {
-    console.log("recent boks reaqeust");
     let response = await GetRecentlyAddedBooks();
     socket.emit("/books/getRecentlyAddedBooks", response);
   });
@@ -164,7 +174,6 @@ io.on("connection", (socket) => {
     socket.emit("/books/removeFromFavorites", response);
   });
   socket.on("/books/getTopRatedSummaries", async (props) => {
-    console.log("received request get top rated summaries", props);
     let response = await GetTopRatedSummaries(props);
     socket.emit("/books/getTopRatedSummaries", response);
   });
@@ -173,13 +182,37 @@ io.on("connection", (socket) => {
     socket.emit("/books/getMostRecentSummaries", response);
   });
   socket.on("/books/addSummary", async (props) => {
-    console.log("add summary received", props);
     let response = await AddSummary(props);
-    console.log("add summary resposne", response);
     socket.emit("/books/addSummary", response);
+  });
+  socket.on("/books/editSummary", async (props) => {
+    let response = await EditSummary(props);
+    socket.emit("/books/editSummary", response);
   });
   socket.on("/books/voteForReply", async (props) => {
     let response = await VoteForReply(props);
     socket.emit("/books/voteForReply", response);
+  });
+
+  socket.on("/books/summaries/getSummary", async (props) => {
+    let response = await GetSummary(props);
+    socket.emit("/books/getSummary", response);
+  });
+
+  socket.on("/books/summaries/rateSummary", async (props) => {
+    let response = await RateSummary(props);
+    socket.emit("/books/summaries/rateSummary", response);
+  });
+  socket.on("/books/summaries/commentSummary", async (props) => {
+    let response = await CommentSummary(props);
+    socket.emit("/books/summaries/commentSummary", response);
+  });
+  socket.on("/books/summaries/getMostRecentSummaries", async (props) => {
+    let response = await GetMostRecentSummaries(props);
+    socket.emit("/books/summaries/getMostRecentSummaries", response);
+  });
+  socket.on("/books/summaries/getTopRatedSummaries", async (props) => {
+    let response = await GetTopRatedSummaries(props);
+    socket.emit("/books/summaries/getTopRatedSummaries", response);
   });
 });

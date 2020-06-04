@@ -5,7 +5,6 @@ const Thread = require("../models/threadsModel");
 const Reply = require("../models/repliesModel");
 
 module.exports.VoteForReply = ({ userId, replyId, vote }) => {
-  console.log("VOTE FOR REPLY HERE", userId, replyId, vote);
   return new Promise(async (resolve, reject) => {
     try {
       let updatedVote;
@@ -38,7 +37,36 @@ module.exports.VoteForReply = ({ userId, replyId, vote }) => {
   });
 };
 
-module.exports.ReplyToQuestion = ({ reply, bookId, userId, threadId }) => {
+module.exports.CommentSummary = ({ reply, userId, summaryId }) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      let newReply = new Reply({
+        date: Date.now(),
+        reply: reply,
+        repliedBy: userId,
+      });
+
+      newReply.save();
+      const insertedReply = await Summary.findOneAndUpdate(
+        { _id: summaryId },
+        {
+          $push: {
+            comments: {
+              _id: newReply._id,
+            },
+          },
+        }
+      );
+      if (insertedReply) {
+        resolve({ insertedReply });
+      } else resolve({ error: "Couldn't reply to question" });
+    } catch (er) {
+      resolve({ error: "Syntax error" });
+    }
+  });
+};
+
+module.exports.ReplyToQuestion = ({ reply, userId, threadId }) => {
   return new Promise(async (resolve, reject) => {
     try {
       let newReply = new Reply({
