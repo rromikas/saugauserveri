@@ -12,6 +12,7 @@ const ThreadsSchema = new Schema({
     default: "No description provided",
   },
   replies: [{ type: mongoose.Schema.Types.ObjectId, ref: "Reply" }],
+  group: { type: mongoose.Schema.Types.ObjectId, ref: "Group" },
 });
 
 const Thread = mongoose.model("Thread", ThreadsSchema);

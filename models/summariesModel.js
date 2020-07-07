@@ -18,6 +18,7 @@ const SummariesSchema = new Schema({
   bookId: { type: mongoose.Schema.Types.ObjectId, ref: "books" },
   rating: { type: Number, default: 0 },
   comments: [{ type: mongoose.Schema.Types.ObjectId, ref: "Reply" }],
+  group: { type: mongoose.Schema.Types.ObjectId, ref: "Group" },
 });
 
 const Summary = mongoose.model("Summary", SummariesSchema);

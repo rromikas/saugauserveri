@@ -45,6 +45,8 @@ const BooksSchema = new Schema({
   summaries: [{ type: mongoose.Schema.Types.ObjectId, ref: "Summary" }],
 
   threads: [{ type: mongoose.Schema.Types.ObjectId, ref: "Thread" }],
+
+  quizzes: [{ type: mongoose.Schema.Types.ObjectId, ref: "Quiz" }],
 });
 
 const Books = model("books", BooksSchema);

@@ -3,7 +3,8 @@ const io = require("./socket-server");
 const verifyToken = require("./verifications/token");
 const verifyFacebook = require("./verifications/facebook");
 const verifyGoogle = require("./verifications/google");
-
+const GroupMember = require("./models/groupMemberModel");
+const Notification = require("./models/notificationModel");
 const {
   ReadUser,
   UpdateUser,
@@ -11,6 +12,7 @@ const {
   GoogleSignup,
   Login,
   Signup,
+  GetNotifications,
 } = require("./mongoApi/users");
 const {
   GetFilteredBooks,
@@ -44,7 +46,26 @@ const {
   VoteForReply,
   CommentSummary,
 } = require("./mongoApi/replies");
+const {
+  GetGroup,
+  CreateGroup,
+  AddBookToGroup,
+  VoteForNextBook,
+  CompleteBookReading,
+  UpdateGroup,
+  InviteToGroup,
+  CheckInvitationValidity,
+  AcceptInvitationToGroup,
+  GetFilteredGroups,
+} = require("./mongoApi/groups");
+const {
+  GetAllQuizzes,
+  CreateQuiz,
+  GetQuiz,
+  SubmitQuizResult,
+} = require("./mongoApi/quiz");
 const mongoose = require("mongoose");
+const { emit } = require("./models/groupMemberModel");
 
 mongoose
   .connect(process.env.MONGODB_URI, {
@@ -69,6 +90,85 @@ io.on("connection", (socket) => {
         : await ReadUser(user);
       socket.emit("/users/read", response);
     });
+  });
+
+  socket.on("/books/quizzes/getAll", async (bookId, groupId) => {
+    let response = await GetAllQuizzes(bookId, groupId);
+    socket.emit("/books/quizzes/getAll", response);
+  });
+
+  socket.on("/books/quizzes/getOne", async (quizId) => {
+    let response = await GetQuiz(quizId);
+    socket.emit("/books/quizzes/getOne", response);
+  });
+
+  socket.on("/books/quizzes/solved", async (result, groupId, bookId) => {
+    let response = await SubmitQuizResult(result, groupId, bookId);
+    socket.emit("/books/quizzes/solved", response);
+  });
+
+  socket.on("/books/quizzes/create", async (quiz) => {
+    console.log("got create reques", quiz);
+    let response = await CreateQuiz(quiz);
+    socket.emit("/books/quizzes/create", response);
+  });
+
+  socket.on("/groups/get", async (groupId) => {
+    let response = await GetGroup(groupId);
+    socket.emit("/groups/get", response);
+  });
+  socket.on("/groups/getFiltered", async (filter) => {
+    let response = await GetFilteredGroups(filter);
+    socket.emit("/groups/getFiltered", response);
+  });
+
+  socket.on("/groups/create", async (group) => {
+    let response = await CreateGroup(group);
+    socket.emit("/groups/create", response);
+  });
+
+  socket.on("/groups/update", async (group) => {
+    let response = await UpdateGroup(group);
+    socket.emit("/groups/update", response);
+  });
+
+  socket.on("/groups/addBook", async (groupId, bookId) => {
+    let response = await AddBookToGroup(groupId, bookId);
+    socket.emit("/groups/addBook", response);
+  });
+
+  socket.on("/groups/inviteMember", async (email, userId, groupId) => {
+    console.log("email, userId, gorupid", email, userId, groupId);
+    let response = await InviteToGroup(email, userId, groupId);
+    socket.emit("/groups/inviteMember", response);
+  });
+
+  socket.on("/groups/checkInvitationValidity", async (token, invitationId) => {
+    console.log("token, invitationId", token, invitationId);
+    let response = await CheckInvitationValidity(token, invitationId);
+    socket.emit("/groups/checkInvitationValidity", response);
+  });
+
+  socket.on(
+    "/groups/acceptInvitation",
+    async (groupId, userId, invitationId) => {
+      let response = await AcceptInvitationToGroup(
+        groupId,
+        userId,
+        invitationId
+      );
+      socket.emit("/groups/acceptInvitation", response);
+    }
+  );
+
+  socket.on("/groups/voteForNextBook", async (bookId, userId) => {
+    let response = await VoteForNextBook(bookId, userId);
+    socket.emit("/groups/voteForNextBook", response);
+  });
+
+  socket.on("/groups/completeBookReading", async (groupId, bookId) => {
+    let response = await CompleteBookReading(groupId, bookId);
+    socket.emit("/groups/completeBookReading", response);
   });
 
   socket.on("/users/facebookSignup", (user) => {
@@ -99,6 +199,11 @@ io.on("connection", (socket) => {
   socket.on("/users/login", async (user) => {
     let response = await Login(user);
     socket.emit("/users/login", response);
+  });
+
+  socket.on("/users/getNotifications", async (userId) => {
+    let response = await GetNotifications(userId);
+    socket.emit("/users/getNotifications", response);
   });
 
   socket.on("/books/getFiltered", async (filters) => {
@@ -216,3 +321,12 @@ io.on("connection", (socket) => {
     socket.emit("/books/summaries/getTopRatedSummaries", response);
   });
 });
+
+async function labas() {
+  let notifications = await Notification.find({
+    receiver_id: "5ed8b3e4d7216a05d305f613",
+    seen: false,
+  });
+  console.log("notifications", notifications);
+}
+labas();

@@ -4,6 +4,8 @@ const User = require("../models/usersModel");
 const Books = require("../models/booksModel");
 require("dotenv").config();
 const secret = process.env.SECRET;
+const GroupMember = require("../models/groupMemberModel");
+const Notification = require("../models/notificationModel");
 
 module.exports.ReadUser = (user) => {
   return new Promise((resolve, reject) => {
@@ -11,13 +13,41 @@ module.exports.ReadUser = (user) => {
       User.findOne({ email: user.email })
         .populate("favoriteBooks")
         .populate({ path: "summaries", populate: { path: "bookId" } })
-        .exec((err, user) => {
-          if (user) {
-            resolve({ user: user });
+        .exec(async (err, data) => {
+          if (data) {
+            const member = await GroupMember.findOne({ user_id: data._id });
+
+            resolve({
+              user: {
+                groupMember: member ? member : { current_vote: -1, role: "" },
+                ...data._doc,
+              },
+            });
           } else {
             resolve({ error: "no such user" });
           }
         });
+    } catch (er) {
+      resolve({ error: "syntax error" });
+    }
+  });
+};
+
+module.exports.GetNotifications = (userId) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      let notifications = await Notification.find({
+        receiver_id: userId,
+        sender_id: { $ne: userId },
+      })
+        .populate("sender_id")
+        .sort({ date: -1 })
+        .exec();
+      if (notifications) {
+        resolve({ notifications: notifications });
+      } else {
+        resolve({ error: "failed getting notifications" });
+      }
     } catch (er) {
       resolve({ error: "syntax error" });
     }
@@ -49,13 +79,19 @@ module.exports.Login = (data) => {
                 { data: user },
                 secret,
                 { expiresIn: "7d" },
-                (err, token) => {
+                async (err, token) => {
                   if (err) {
                     resolve({ error: "jwt error email form login" });
                   } else {
+                    const member = await GroupMember.findOne({
+                      user_id: user._id,
+                    });
                     resolve({
                       token: token,
                       user: {
+                        groupMember: member
+                          ? member
+                          : { current_vote: -1, role: "" },
                         name: user.name,
                         photo: user.photo,
                         description: user.description,
@@ -115,7 +151,7 @@ module.exports.FacebookSignup = (userData) => {
       if (err) {
         resolve({ error: err });
       } else {
-        User.findOne({ email: userData.email }).then((user) => {
+        User.findOne({ email: userData.email }).then(async (user) => {
           if (!user) {
             //create user if doesn't exist
             let name = userData.name
@@ -128,11 +164,17 @@ module.exports.FacebookSignup = (userData) => {
             });
             newUser
               .save()
-              .then(() => {
+              .then(async () => {
+                const member = await GroupMember.findOne({
+                  user_id: newUser._id,
+                });
                 resolve({
                   message: "User created",
                   token: token,
                   user: {
+                    groupMember: member
+                      ? member
+                      : { current_vote: -1, role: "" },
                     name: newUser.name,
                     photo: newUser.photo,
                     description: newUser.description,
@@ -144,9 +186,12 @@ module.exports.FacebookSignup = (userData) => {
                 resolve({ error: er });
               });
           } else {
+            const member = await GroupMember.findOne({ user_id: user._id });
+            console.log("Member facebook signup", member);
             resolve({
               token: token,
               user: {
+                groupMember: member ? member : { current_vote: -1, role: "" },
                 name: user.name,
                 photo: user.photo,
                 description: user.description,
@@ -166,7 +211,7 @@ module.exports.GoogleSignup = (userData) => {
       if (err) {
         resolve({ error: err });
       } else {
-        User.findOne({ email: userData.email }).then((user) => {
+        User.findOne({ email: userData.email }).then(async (user) => {
           if (!user) {
             //create user if doesn't exist
             let name = userData.name
@@ -179,11 +224,17 @@ module.exports.GoogleSignup = (userData) => {
             });
             newUser
               .save()
-              .then(() => {
+              .then(async () => {
+                const member = await GroupMember.findOne({
+                  user_id: newUser._id,
+                });
                 resolve({
                   message: "User created",
                   token: token,
                   user: {
+                    groupMember: member
+                      ? member
+                      : { current_vote: -1, role: "" },
                     name: newUser.name,
                     photo: newUser.photo,
                     description: newUser.description,
@@ -195,9 +246,12 @@ module.exports.GoogleSignup = (userData) => {
                 resolve({ error: er });
               });
           } else {
+            const member = await GroupMember.findOne({ user_id: user._id });
+            console.log("Member google signup", member);
             resolve({
               token: token,
               user: {
+                groupMember: member ? member : { current_vote: -1, role: "" },
                 name: user.name,
                 photo: user.photo,
                 description: user.description,

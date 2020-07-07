@@ -3,6 +3,7 @@ const Books = require("../models/booksModel");
 const Summary = require("../models/summariesModel");
 const Thread = require("../models/threadsModel");
 const Reply = require("../models/repliesModel");
+const Notification = require("../models/notificationModel");
 
 module.exports.VoteForReply = ({ userId, replyId, vote }) => {
   return new Promise(async (resolve, reject) => {
@@ -37,7 +38,13 @@ module.exports.VoteForReply = ({ userId, replyId, vote }) => {
   });
 };
 
-module.exports.CommentSummary = ({ reply, userId, summaryId }) => {
+module.exports.CommentSummary = ({
+  reply,
+  userId,
+  summaryId,
+  summary_aurthor_id,
+  bookId,
+}) => {
   return new Promise(async (resolve, reject) => {
     try {
       let newReply = new Reply({
@@ -47,6 +54,17 @@ module.exports.CommentSummary = ({ reply, userId, summaryId }) => {
       });
 
       newReply.save();
+
+      let newNotification = new Notification({
+        receiver_id: summary_aurthor_id,
+        sender_id: userId,
+        date: Date.now(),
+        message: "Replied to you summary",
+        link: `/books/${bookId}/summaries/${summaryId}`,
+      });
+
+      newNotification.save();
+
       const insertedReply = await Summary.findOneAndUpdate(
         { _id: summaryId },
         {
@@ -66,7 +84,13 @@ module.exports.CommentSummary = ({ reply, userId, summaryId }) => {
   });
 };
 
-module.exports.ReplyToQuestion = ({ reply, userId, threadId }) => {
+module.exports.ReplyToQuestion = ({
+  reply,
+  userId,
+  threadId,
+  thread_author_id,
+  bookId,
+}) => {
   return new Promise(async (resolve, reject) => {
     try {
       let newReply = new Reply({
@@ -74,6 +98,16 @@ module.exports.ReplyToQuestion = ({ reply, userId, threadId }) => {
         reply: reply,
         repliedBy: userId,
       });
+
+      let notification = new Notification({
+        sender_id: userId,
+        receiver_id: thread_author_id,
+        message: "Replied to your question",
+        link: `/books/${bookId}/threads/${threadId}`,
+        date: Date.now(),
+      });
+
+      notification.save();
 
       newReply.save();
       const insertedReply = await Thread.findOneAndUpdate(
