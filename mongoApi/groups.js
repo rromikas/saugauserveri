@@ -114,7 +114,6 @@ module.exports.AcceptInvitationToGroup = (groupId, userId, invitationId) => {
         resolve({ error: "error accepting invitation" });
       }
     } catch (er) {
-      console.log("invite error", er);
       resolve({ error: "syntax error" });
     }
   });
@@ -181,7 +180,6 @@ module.exports.AddBookToGroup = (groupId, bookId) => {
           group_id: groupId,
           currently_reading: true,
         });
-        console.log("AR DABAR YRA SKAITOMA KNYGA", currReadingBook);
         const newGroupBook = new GroupBook({
           group_id: groupId,
           book_id: bookId,
@@ -199,18 +197,16 @@ module.exports.AddBookToGroup = (groupId, bookId) => {
         resolve({ error: "book is already in your group" });
       }
     } catch (err) {
-      console.log("error add book group", err);
       resolve({ error: err });
     }
   });
 };
 
-module.exports.VoteForNextBook = (bookId, userId) => {
+module.exports.VoteForNextBook = (bookId, userId, groupId) => {
   return new Promise(async (resolve, reject) => {
     try {
       let member = await GroupMember.findOne({ user_id: userId });
       let prevVote = member.current_vote ? member.current_vote : 0;
-      console.log("memer curent vote ir prev vote", bookId, prevVote);
       if (prevVote.toString() === bookId.toString()) {
         resolve({ error: "You already voted for this book" });
       } else {
@@ -223,13 +219,13 @@ module.exports.VoteForNextBook = (bookId, userId) => {
             let reducedBook = "something";
             if (prevVote) {
               reducedBook = await GroupBook.updateOne(
-                { book_id: prevVote },
+                { book_id: prevVote, group_id: groupId },
                 { $inc: { read_next_votes: -1 } }
               ).exec();
             }
 
             let increasedBook = await GroupBook.updateOne(
-              { book_id: member.current_vote },
+              { book_id: member.current_vote, group_id: groupId },
               { $inc: { read_next_votes: 1 } }
             ).exec();
             if (increasedBook && reducedBook) {
@@ -241,7 +237,6 @@ module.exports.VoteForNextBook = (bookId, userId) => {
         });
       }
     } catch (err) {
-      console.log("error voting", err);
       resolve({ error: err });
     }
   });
@@ -287,10 +282,8 @@ module.exports.CompleteBookReading = (groupId, bookId) => {
             : 0
         );
 
-      console.log("boks arr", booksArr);
       let bookLeader = booksArr.length > 0 ? booksArr[0] : null;
       if (bookLeader) {
-        console.log("Book leader", bookLeader);
         await GroupBook.updateOne(
           { group_id: bookLeader.group_id, book_id: bookLeader.book_id },
           {
@@ -311,7 +304,6 @@ module.exports.CompleteBookReading = (groupId, bookId) => {
       ).exec();
       resolve({ success: true });
     } catch (err) {
-      console.log("error add book group", err);
       resolve({ error: err });
     }
   });

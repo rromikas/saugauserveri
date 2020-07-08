@@ -58,7 +58,6 @@ module.exports.GetQuiz = (quizId) => {
           }
         });
     } catch (er) {
-      console.log("erorr", er);
       resolve({ error: er });
     }
   });
@@ -98,7 +97,6 @@ module.exports.SubmitQuizResult = (result, groupId, bookId) => {
         });
       }
     } catch (er) {
-      console.log("erorr", er);
       resolve({ error: er });
     }
   });

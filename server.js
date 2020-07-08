@@ -108,7 +108,6 @@ io.on("connection", (socket) => {
   });
 
   socket.on("/books/quizzes/create", async (quiz) => {
-    console.log("got create reques", quiz);
     let response = await CreateQuiz(quiz);
     socket.emit("/books/quizzes/create", response);
   });
@@ -138,13 +137,11 @@ io.on("connection", (socket) => {
   });
 
   socket.on("/groups/inviteMember", async (email, userId, groupId) => {
-    console.log("email, userId, gorupid", email, userId, groupId);
     let response = await InviteToGroup(email, userId, groupId);
     socket.emit("/groups/inviteMember", response);
   });
 
   socket.on("/groups/checkInvitationValidity", async (token, invitationId) => {
-    console.log("token, invitationId", token, invitationId);
     let response = await CheckInvitationValidity(token, invitationId);
     socket.emit("/groups/checkInvitationValidity", response);
   });
@@ -161,8 +158,8 @@ io.on("connection", (socket) => {
     }
   );
 
-  socket.on("/groups/voteForNextBook", async (bookId, userId) => {
-    let response = await VoteForNextBook(bookId, userId);
+  socket.on("/groups/voteForNextBook", async (bookId, userId, groupId) => {
+    let response = await VoteForNextBook(bookId, userId, groupId);
     socket.emit("/groups/voteForNextBook", response);
   });
 
@@ -321,12 +318,3 @@ io.on("connection", (socket) => {
     socket.emit("/books/summaries/getTopRatedSummaries", response);
   });
 });
-
-async function labas() {
-  let notifications = await Notification.find({
-    receiver_id: "5ed8b3e4d7216a05d305f613",
-    seen: false,
-  });
-  console.log("notifications", notifications);
-}
-labas();

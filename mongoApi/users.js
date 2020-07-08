@@ -187,7 +187,6 @@ module.exports.FacebookSignup = (userData) => {
               });
           } else {
             const member = await GroupMember.findOne({ user_id: user._id });
-            console.log("Member facebook signup", member);
             resolve({
               token: token,
               user: {
@@ -247,7 +246,6 @@ module.exports.GoogleSignup = (userData) => {
               });
           } else {
             const member = await GroupMember.findOne({ user_id: user._id });
-            console.log("Member google signup", member);
             resolve({
               token: token,
               user: {
